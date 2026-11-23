@@ -29,6 +29,13 @@ enum PaymentStatus {
   FAILED
 }
 
+enum Audience {
+  MEN
+  WOMEN
+  UNISEX
+  KIDS
+}
+
 // ---------- Catalog ----------
 
 model Category {
@@ -44,6 +51,7 @@ model Product {
   name        String
   description String
   price       Int // santim (1 ETB = 100 santim)
+  audience    Audience       @default(UNISEX)
   active      Boolean        @default(true)
   featured    Boolean        @default(false)
   categoryId  String
@@ -55,6 +63,7 @@ model Product {
 
   @@index([categoryId])
   @@index([active, featured])
+  @@index([audience])
 }
 
 model Variant {
@@ -62,6 +71,7 @@ model Variant {
   sku           String      @unique
   size          String
   color         String
+  colorHex      String? // e.g. "#1F2A44", used to draw the color swatc
   stock         Int         @default(0)
   reserved      Int         @default(0)
   priceOverride Int? // santim; null means use Product.price
