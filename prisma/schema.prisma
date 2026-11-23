@@ -11,3 +11,144 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+// ---------- Enums ----------
+
+enum OrderStatus {
+  PENDING
+  PAID
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+}
+
+// ---------- Catalog ----------
+
+model Category {
+  id       String    @id @default(cuid())
+  name     String
+  slug     String    @unique
+  products Product[]
+}
+
+model Product {
+  id          String         @id @default(cuid())
+  slug        String         @unique
+  name        String
+  description String
+  price       Int // santim (1 ETB = 100 santim)
+  active      Boolean        @default(true)
+  featured    Boolean        @default(false)
+  categoryId  String
+  category    Category       @relation(fields: [categoryId], references: [id])
+  variants    Variant[]
+  images      ProductImage[]
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  @@index([categoryId])
+  @@index([active, featured])
+}
+
+model Variant {
+  id            String      @id @default(cuid())
+  sku           String      @unique
+  size          String
+  color         String
+  stock         Int         @default(0)
+  reserved      Int         @default(0)
+  priceOverride Int? // santim; null means use Product.price
+  productId     String
+  product       Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
+  orderItems    OrderItem[]
+
+  @@unique([productId, size, color])
+}
+
+model ProductImage {
+  id        String  @id @default(cuid())
+  url       String
+  publicId  String // Cloudinary id, needed to delete or transform later
+  alt       String  @default("")
+  position  Int     @default(0)
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId, position])
+}
+
+// ---------- Orders ----------
+
+model Order {
+  id          String      @id @default(uuid()) // unguessable, used in order links
+  orderNumber Int         @unique @default(autoincrement()) // friendly number
+  status      OrderStatus @default(PENDING)
+
+  fullName String
+  email    String
+  phone    String
+  city     String
+  address  String
+  notes    String?
+
+  subtotal    Int // santim
+  deliveryFee Int // santim
+  total       Int // santim
+  currency    String @default("ETB")
+
+  expiresAt DateTime // pending orders past this are cancelled, stock released
+  items     OrderItem[]
+  payments  Payment[]
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  @@index([status, createdAt])
+  @@index([email])
+}
+
+model OrderItem {
+  id        String  @id @default(cuid())
+  orderId   String
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  variantId String
+  variant   Variant @relation(fields: [variantId], references: [id], onDelete: Restrict)
+
+  // snapshot at time of purchase
+  productName String
+  size        String
+  color       String
+  unitPrice   Int // santim
+  quantity    Int
+
+  @@index([orderId])
+}
+
+model Payment {
+  id        String        @id @default(cuid())
+  orderId   String
+  order     Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  txRef     String        @unique // sent to Chapa; unique per attempt
+  amount    Int // santim
+  status    PaymentStatus @default(PENDING)
+  chapaRef  String? // Chapa's own reference, saved after verification
+  paidAt    DateTime?
+  createdAt DateTime      @default(now())
+
+  @@index([orderId])
+}
+
+// ---------- Admin ----------
+
+model Admin {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+}
