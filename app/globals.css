@@ -9,10 +9,9 @@
   --surface: #ffffff;
   --foreground: #1c1917;
   --muted: #6b6560;
-  --primary: #5b1f2b;   /* burgundy instead of navy */
-  --accent: #3f6b5a;    /* sage green instead of gold */
+  --primary: #1f2a44;
   --primary-foreground: #ffffff;
-  
+  --accent: #b08d57;
   --accent-foreground: #1c1917;
   --border: #e7e1d8;
 }
