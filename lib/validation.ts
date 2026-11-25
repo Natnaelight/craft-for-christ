@@ -42,3 +42,16 @@ export function productsHref(
   const query = params.toString();
   return query ? `/products?${query}` : "/products";
 }
+
+// Product slugs are lowercase words joined by hyphens, like "grace-hoodie".
+// Checking the shape first stops random junk URLs from hitting the database
+// (and from filling the cache with useless entries).
+const slugSchema = z
+  .string()
+  .max(100)
+  .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/);
+
+export function parseSlug(value: string): string | null {
+  const result = slugSchema.safeParse(value);
+  return result.success ? result.data : null;
+}

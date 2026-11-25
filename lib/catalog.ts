@@ -8,6 +8,9 @@ export const AUDIENCE_LABELS: Record<Audience, string> = {
   KIDS: "Kids",
 };
 
+// At or below this many items, product pages show "Only N left"
+export const LOW_STOCK_THRESHOLD = 5;
+
 // Labels for cached data. Admin code will invalidate these after edits.
 export const CACHE_TAGS = {
   products: "products",
