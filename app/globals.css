@@ -32,3 +32,27 @@
   --font-sans: var(--font-inter);
   --font-heading: var(--font-playfair);
 }
+
+/* Gentle entrance animation; only plays for people who allow motion */
+@theme {
+  --animate-fade-up: fade-up 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
+
+  @keyframes fade-up {
+    from {
+      opacity: 0;
+      transform: translateY(16px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}
+
+/* Visible keyboard focus everywhere (accessibility) */
+@layer base {
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+}

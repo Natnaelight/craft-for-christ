@@ -1,8 +1,14 @@
 import { z } from "zod";
 import { AUDIENCES, type Audience } from "./catalog";
 
-const SORT_OPTIONS = ["newest", "price-asc", "price-desc"] as const;
+export const SORT_OPTIONS = ["newest", "price-asc", "price-desc"] as const;
 export type Sort = (typeof SORT_OPTIONS)[number];
+
+export const SORT_LABELS: Record<Sort, string> = {
+  newest: "Newest",
+  "price-asc": "Price: low to high",
+  "price-desc": "Price: high to low",
+};
 
 export type ProductFilters = {
   category?: string;
@@ -20,4 +26,19 @@ export function parseProductFilters(
   input: Record<string, unknown>,
 ): ProductFilters {
   return productFiltersSchema.parse(input);
+}
+
+// Builds a /products URL from the current filters plus any changes.
+// Default values are left out so URLs stay short and clean.
+export function productsHref(
+  current: ProductFilters,
+  changes: Partial<ProductFilters> = {},
+): string {
+  const next = { ...current, ...changes };
+  const params = new URLSearchParams();
+  if (next.category) params.set("category", next.category);
+  if (next.audience) params.set("audience", next.audience);
+  if (next.sort !== "newest") params.set("sort", next.sort);
+  const query = params.toString();
+  return query ? `/products?${query}` : "/products";
 }
